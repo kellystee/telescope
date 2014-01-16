@@ -155,7 +155,7 @@ local function make_assertion(name, message, func)
       local a = {}
       local args = {...}
       local nargs = select('#', ...)
-      if nargs > num_vars then        
+      if nargs > num_vars then
         local userErrorMessage = args[num_vars+1]
         if type(userErrorMessage) == "string" then
           return(assertion_message_prefix .. userErrorMessage)
@@ -231,6 +231,26 @@ local function ancestors(i, contexts)
   return a
 end
 
+local function arrays_equal(array_1, array_2)
+  result = {}
+
+  if type(array_1) ~= "table" or type(array_2) ~= "table" then
+    return false
+  end
+
+  if #array_1 ~= #array_2 then
+    return false
+  end
+
+  for i = 1, #array_1 do
+    if array_1[i] ~= array_2[i] then
+      return false
+    end
+  end
+
+  return true;
+end
+
 make_assertion("blank",        "'%s' to be blank",                         function(a) return a == '' or a == nil end)
 make_assertion("empty",        "'%s' to be an empty table",                function(a) return not next(a) end)
 make_assertion("equal",        "'%s' to be equal to '%s'",                 function(a, b) return a == b end)
@@ -252,6 +272,7 @@ make_assertion("not_error",    "result not to be an error",                funct
 make_assertion("not_match",    "'%s' not to be a match for %s",            function(a, b) return not (tostring(b)):match(a) end)
 make_assertion("not_nil",      "'%s' not to be nil",                       function(a) return a ~= nil end)
 make_assertion("not_type",     "'%s' not to be a %s",                      function(a, b) return type(a) ~= b end)
+make_assertion("arrays_equal", "'%s' to be equal to %s",                   function(a, b) return arrays_equal(a, b) end)
 
 --- Build a contexts table from the test file or function given in <tt>target</tt>.
 -- If the optional <tt>contexts</tt> table argument is provided, then the
@@ -443,12 +464,12 @@ local function run(contexts, callbacks, test_filter)
     table.sort(ancestors)
     -- this "before" is the test callback passed into the runner
     invoke_callback("before", result)
-    
+
     -- run all the "before" blocks/functions
     for _, a in ipairs(ancestors) do
-      if contexts[a].before then 
+      if contexts[a].before then
         setfenv(contexts[a].before, env)
-        contexts[a].before() 
+        contexts[a].before()
       end
     end
 
@@ -465,9 +486,9 @@ local function run(contexts, callbacks, test_filter)
     -- Run all the "after" blocks/functions
     table.reverse(ancestors)
     for _, a in ipairs(ancestors) do
-      if contexts[a].after then 
+      if contexts[a].after then
         setfenv(contexts[a].after, env)
-        contexts[a].after() 
+        contexts[a].after()
       end
     end
 
